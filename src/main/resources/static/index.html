@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="da">
+<!-- head indeholder metadata / information om siden, men ikke indholdet -->
+<head>
+    <!-- Her, (meta charset), viser den danske bogstaver som fx æ, ø og å. Dette er UTF-8. -->
+    <meta charset="UTF-8">
+    <!-- Det der vises i min fane ved browservinduet -->
+    <title>Add message</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<!-- Body: Alt det visuelt vises på siden ses her -->
+<body>
+<!-- Alm. overskrift 1 -->
+<h1>Tilføj en besked</h1>
+
+<!-- En input-boks og en knap -->
+<!-- Input er det felt, hvor brugeren kan skrive tekst -->
+<!-- Type="text" betyder, at det er almindelig tekst (typen, som navnet antyder) -->
+<!-- Placeholder="Skriv besked her..." viser grå hjælpetekst, indtil man skriver -->
+<input id="content" type="text" placeholder="Skriv besked her..." />
+<!-- button er en knap, som man kan trykke på. -->
+<!-- onclick=sendMessage(): Når man klikker, så kører den JavaScript-funktionen sendMessage() -->
+<button onclick="sendMessage()">Send</button>
+
+<!-- Her viser vi alle beskeder. -->
+<!-- Overskrift to / mindre -->
+<h2>Beskeder:</h2>
+<!-- id="list" så JavaScript kan tilføje <li> elementer (beskeder) her. Den starter tom, men bliver fyldt ud dynamisk -->
+<ul id="list"></ul>
+
+<script>
+    // Funktion til at hente alle beskeder
+    // loadMessages gør mange ting.
+    async function loadMessages() {
+        // fetch('/message'); Kalder mit backend-endpoint GET /message
+        const res = await fetch('/message');         // GET /message
+        // await res.json() læser svaret som JSON
+        const data = await res.json();
+        // document.getElementById('list') finder <ul>
+        const list = document.getElementById('list');
+        // list.innerHTML = '' -> Sletter alle gamle beskeder fra listen
+        list.innerHTML = '';
+        // data.forEach(m => {...}) -> Gennemgår alle beskeder i JSON-listen
+        data.forEach(m => {
+            // Opretter et nyt <li> listeelement
+            const li = document.createElement('li');
+            // li.textContent = m.id + ": " + m.content -> Sætter tekst, fx 1: Velkommen til 1. Semester!
+            li.textContent = m.id + ": " + m.content;
+            // list.appendChild(li); -> Tilføjer elementet til <ul>
+            list.appendChild(li);
+        });
+    }
+
+    // Funktion til at sende en ny besked
+    async function sendMessage() {
+        // document.getElementById('content').value → Finder tekstfeltet og læser brugerens input.
+        const content = document.getElementById('content').value;
+        // fetch('/message/add', {...}) → Sender en HTTP POST til backend:
+        await fetch('/message/add', {
+            // method: 'POST' → det er en POST-request.
+            method: 'POST',
+            // headers → fortæller serveren at vi sender JSON.
+            headers: { 'Content-Type': 'application/json' },
+            // body: JSON.stringify({ content: content }) → laver JSON med brugerens tekst.
+            body: JSON.stringify({ content: content })
+        });
+        // document.getElementById('content').value = '' → Tømmer tekstfeltet bagefter.
+        document.getElementById('content').value = '';
+        // loadMessages() → Kalder funktionen fra før, så listen bliver genindlæst og viser den nye besked.
+        loadMessages();  // hent beskeder igen efter tilføjelse
+    }
+
+    // hent beskeder når siden starter
+    // Når siden åbner, kører loadMessages() én gang → så du ser de 3 startbeskeder med det samme.
+    loadMessages();
+    // </script> lukker JavaScript.
+</script>
+<!--  lukker body, osv... -->
+</body>
+</html>
